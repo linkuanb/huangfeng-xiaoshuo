@@ -1,7 +1,0 @@
-﻿config.json  509B
-device_pool.example.json  341B
-filter.json  1330B
---git tracked?--
-device_pool.json tracked: False
---APK asset config files--
---rust reads device_pool?--

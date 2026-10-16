@@ -1,4 +1,0 @@
-﻿dex files: ['classes.dex']
-has com.huangfeng.xiaoshuo.MainActivity: True
-has com.fqapp.fqapp.MainActivity: False
-libs: ['lib/arm64-v8a/libapp.so', 'lib/arm64-v8a/libdartjni.so', 'lib/arm64-v8a/libdatastore_shared_counter.so', 'lib/arm64-v8a/libflutter.so', 'lib/arm64-v8a/libfqapi_core.so', 'lib/arm64-v8a/libshortplay_crypto.so']

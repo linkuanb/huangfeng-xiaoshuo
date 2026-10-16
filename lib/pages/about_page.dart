@@ -117,7 +117,6 @@ class AboutPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const _SupportCard(),
           const SizedBox(height: 28),
           Center(
             child: Text(
@@ -218,103 +217,5 @@ Future<void> _launchExternalUrl(BuildContext context, String url) async {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('无法打开链接')));
-  }
-}
-
-/// 支持作者区块：单独一张卡，用爱发电品牌紫着色并配实心按钮，比普通信息行
-/// 更醒目（对齐 Aether 仓库赞助区的呈现方式）。点击只用系统浏览器打开链接，
-/// 不引入账号、支付、捐赠校验或统计上报；墨水屏模式下退化为黑白。
-class _SupportCard extends StatelessWidget {
-  const _SupportCard();
-
-  static const _sponsorUrl = 'https://afdian.com/a/ch6vip';
-
-  /// 爱发电品牌紫，与 README 里 shields.io 徽章同色。
-  static const _brandColor = Color(0xFF946CE6);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = HomePalette.of(context);
-    final brand = palette.eink ? palette.ink : _brandColor;
-    final onBrand = palette.eink ? palette.canvas : Colors.white;
-    final tint = brand.withValues(
-      alpha: palette.eink ? 0.06 : (palette.dark ? 0.20 : 0.10),
-    );
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      elevation: 0,
-      color: tint,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: brand.withValues(alpha: 0.35), width: 0.8),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: brand,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.volunteer_activism,
-                    size: 20,
-                    color: onBrand,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '支持作者',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '如果这个项目对你有帮助，欢迎在爱发电支持我',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => _launchExternalUrl(context, _sponsorUrl),
-                icon: const Icon(Icons.favorite, size: 18),
-                label: const Text('前往爱发电'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: brand,
-                  foregroundColor: onBrand,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

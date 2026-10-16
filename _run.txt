@@ -1,3 +1,0 @@
-﻿=== process check ===
-2424
-=== fatal check ===
