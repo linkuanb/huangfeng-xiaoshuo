@@ -1,0 +1,14 @@
+﻿FRB: C:\Users\Administrator\AppData\Local\Pub\Cache\hosted\pub.flutter-io.cn\flutter_rust_bridge-2.13.0
+--- executor.dart
+final rustCrateName = await _getRustCreateName(
+await _executeWasmPack(args, rustCrateName: rustCrateName);
+await _executeWasmBindgen(args, rustCrateName: rustCrateName);
+final rustCrateName = (manifest['targets'] as List).firstWhere(
+if (rustCrateName.isEmpty) bail('Crate name cannot be empty.');
+return rustCrateName;
+--- _common.dart
+class ExternalLibraryLoaderConfig {
+--- _io.dart
+class ExternalLibrary extends BaseExternalLibrary {
+--- _web.dart
+class ExternalLibrary extends BaseExternalLibrary {

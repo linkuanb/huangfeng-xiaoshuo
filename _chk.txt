@@ -1,0 +1,17 @@
+﻿=== main kotlin tree ===
+com\example\shortplay\CryptoNative.kt
+com\huangfeng\xiaoshuo\DownloadsPlugin.kt
+com\huangfeng\xiaoshuo\LibraryBackupPlugin.kt
+com\huangfeng\xiaoshuo\ListenKeepAliveService.kt
+com\huangfeng\xiaoshuo\LocalBookPickerPlugin.kt
+com\huangfeng\xiaoshuo\MainActivity.kt
+com\huangfeng\xiaoshuo\NativePlayerPlugin.kt
+com\huangfeng\xiaoshuo\NativeVideoOutput.kt
+com\huangfeng\xiaoshuo\ReaderBrightnessSession.kt
+com\huangfeng\xiaoshuo\ReaderDevicePlugin.kt
+com\huangfeng\xiaoshuo\ReaderSystemBarsSession.kt
+com\huangfeng\xiaoshuo\RendererCompatibility.kt
+com\huangfeng\xiaoshuo\SharePlugin.kt
+com\huangfeng\xiaoshuo\SystemTtsPlugin.kt
+=== residual com.fqapp in main ===
+=== test moved === ['CryptoDataSourceTest.java', 'HttpRangeDiagnosticsTest.kt', 'NativePlayerCreationTest.java', 'NativePlayerPluginTest.java', 'NativeVideoOutputTest.java', 'ReaderBrightnessSessionTest.java', 'ReaderSystemBarsSessionTest.kt', 'SoftwareDecoderTest.kt']

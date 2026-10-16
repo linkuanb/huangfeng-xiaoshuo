@@ -1,0 +1,30 @@
+﻿=== Kotlin dir structure ===
+com\example\shortplay\CryptoNative.kt
+com\fqapp\fqapp\DownloadsPlugin.kt
+com\fqapp\fqapp\LibraryBackupPlugin.kt
+com\fqapp\fqapp\ListenKeepAliveService.kt
+com\fqapp\fqapp\LocalBookPickerPlugin.kt
+com\fqapp\fqapp\MainActivity.kt
+com\fqapp\fqapp\NativePlayerPlugin.kt
+com\fqapp\fqapp\NativeVideoOutput.kt
+com\fqapp\fqapp\ReaderBrightnessSession.kt
+com\fqapp\fqapp\ReaderDevicePlugin.kt
+com\fqapp\fqapp\ReaderSystemBarsSession.kt
+com\fqapp\fqapp\RendererCompatibility.kt
+com\fqapp\fqapp\SharePlugin.kt
+com\fqapp\fqapp\SystemTtsPlugin.kt
+=== package declarations ===
+CryptoNative.kt: package com.example.shortplay
+DownloadsPlugin.kt: package com.fqapp.fqapp
+LibraryBackupPlugin.kt: package com.fqapp.fqapp
+ListenKeepAliveService.kt: package com.fqapp.fqapp
+LocalBookPickerPlugin.kt: package com.fqapp.fqapp
+MainActivity.kt: package com.fqapp.fqapp
+NativePlayerPlugin.kt: package com.fqapp.fqapp
+NativeVideoOutput.kt: package com.fqapp.fqapp
+ReaderBrightnessSession.kt: package com.fqapp.fqapp
+ReaderDevicePlugin.kt: package com.fqapp.fqapp
+ReaderSystemBarsSession.kt: package com.fqapp.fqapp
+RendererCompatibility.kt: package com.fqapp.fqapp
+SharePlugin.kt: package com.fqapp.fqapp
+SystemTtsPlugin.kt: package com.fqapp.fqapp

@@ -1,0 +1,2 @@
+moved: DownloadsPlugin.kt, LibraryBackupPlugin.kt, ListenKeepAliveService.kt, LocalBookPickerPlugin.kt, MainActivity.kt, NativePlayerPlugin.kt, NativeVideoOutput.kt, ReaderBrightnessSession.kt, ReaderDevicePlugin.kt, ReaderSystemBarsSession.kt, RendererCompatibility.kt, SharePlugin.kt, SystemTtsPlugin.kt
+proguard updated

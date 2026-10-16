@@ -1,0 +1,2 @@
+﻿C:\Android\platform-tools\adb.exe
+PATH check:

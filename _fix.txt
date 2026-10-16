@@ -1,0 +1,2 @@
+﻿HttpRangeDiagnosticsTest moved to com/example/shortplay
+done

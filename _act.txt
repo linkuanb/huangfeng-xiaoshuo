@@ -1,0 +1,4 @@
+﻿topResumedActivity=ActivityRecord{5c33c31 u0 com.huangfeng.xiaoshuo/.MainActivity t15}
+=== huangfeng crash entries in dropbox ===
+Process: com.huangfeng.xiaoshuo
+Package: com.huangfeng.xiaoshuo v123 (1.0.118)
