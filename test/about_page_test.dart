@@ -35,7 +35,7 @@ void main() {
     expect(find.text('当前版本'), findsOneWidget);
     expect(find.text(AboutPage.versionText), findsOneWidget);
     expect(find.text('检查更新'), findsOneWidget);
-    expect(find.text('前往 GitHub 发布页查看新版本'), findsOneWidget);
+    expect(find.text('在线检查并安装新版本'), findsOneWidget);
     expect(find.text('开源许可'), findsOneWidget);
     expect(find.text('GPL-3.0 与第三方组件许可'), findsOneWidget);
     expect(find.text('Source Code'), findsNothing);

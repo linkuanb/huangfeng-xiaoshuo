@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/app_update_service.dart';
+import '../widgets/app_update_dialog.dart';
 import '../widgets/home/home_design.dart';
 import '../widgets/settings/settings_widgets.dart';
 
@@ -181,11 +183,8 @@ class _AboutInfoCard extends StatelessWidget {
           icon: LucideIcons.square_arrow_out_up_right,
           iconTile: true,
           title: '检查更新',
-          subtitle: '前往 GitHub 发布页查看新版本',
-          onTap: () => _launchExternalUrl(
-            context,
-            'https://github.com/ch6vip/fqapp/releases',
-          ),
+          subtitle: '在线检查并安装新版本',
+          onTap: () => _checkUpdateManually(context),
         ),
         SettingsRow(
           icon: LucideIcons.scale,
@@ -220,6 +219,30 @@ class _AboutInfoCard extends StatelessWidget {
       ],
     );
   }
+}
+
+/// 关于页手动检查更新：有新版弹更新对话框；已最新与检查失败分别给出
+/// 可见提示（启动时的静默检查在 main.dart 的 RootShell）。
+Future<void> _checkUpdateManually(BuildContext context) async {
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.showSnackBar(const SnackBar(content: Text('正在检查更新…')));
+  String? error;
+  AppUpdateInfo? info;
+  try {
+    info = await AppUpdateService().fetchUpdate();
+  } catch (_) {
+    error = '检查更新失败，请检查网络后重试';
+  }
+  messenger.hideCurrentSnackBar();
+  if (error != null) {
+    messenger.showSnackBar(SnackBar(content: Text(error)));
+    return;
+  }
+  if (info != null && context.mounted) {
+    unawaited(showAppUpdateDialog(context, info));
+    return;
+  }
+  messenger.showSnackBar(const SnackBar(content: Text('当前已是最新版本')));
 }
 
 /// 用外部应用打开 [url]。Android 的包可见性可能让浏览器对 canLaunchUrl

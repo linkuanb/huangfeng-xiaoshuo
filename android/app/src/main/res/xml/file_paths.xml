@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App 内自动更新：安装包下载到应用缓存的 update_apks/ 后，FileProvider
+     以内容 URI 临时授权给系统安装器读取（见 AppUpdatePlugin）。 -->
+<paths>
+    <cache-path name="update_apks" path="update_apks/" />
+</paths>

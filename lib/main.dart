@@ -24,6 +24,7 @@ import 'pages/library_page.dart';
 import 'pages/mine_page.dart';
 import 'services/app_log.dart';
 import 'services/app_theme.dart';
+import 'services/app_update_service.dart';
 import 'services/audio_download_store.dart';
 import 'services/audio_floating_routes.dart';
 import 'services/drama_cache_preferences.dart';
@@ -47,6 +48,7 @@ import 'services/poster_cache.dart';
 import 'services/shelf_store.dart';
 import 'services/swipe_guide_store.dart';
 import 'widgets/lazy_indexed_stack.dart';
+import 'widgets/app_update_dialog.dart';
 import 'widgets/home/home_design.dart';
 
 Future<void> main() async {
@@ -463,6 +465,19 @@ class _RootShellState extends State<RootShell> {
     // 要跟着换肤，所以停在壳层的 build 里监听。
     dramaLightPageNotifier.addListener(_onDramaChromeChanged);
     _startBackend();
+    _scheduleAppUpdateCheck();
+  }
+
+  /// 启动后静默检查一次新版本：有新版弹更新对话框，失败（断网、已最新、
+  /// 非 Android）不打扰用户。延迟几秒等首帧稳定、避免和后端启动抢网络。
+  void _scheduleAppUpdateCheck() {
+    unawaited(Future<void>(() async {
+      await Future<void>.delayed(const Duration(seconds: 3));
+      if (!mounted) return;
+      final info = await AppUpdateService().check();
+      if (!mounted || info == null) return;
+      await showAppUpdateDialog(context, info);
+    }));
   }
 
   void _onDramaChromeChanged() {
