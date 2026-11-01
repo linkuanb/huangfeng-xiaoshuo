@@ -189,10 +189,12 @@ flutter build apk --release --target-platform android-arm64
 
 ### GitHub Actions 云端编译
 
-打开 [Actions → Android APK](https://github.com/ch6vip/fqapp/actions/workflows/android-apk.yml)，
-点击 **Run workflow** 即可从源码构建。`master` 上的应用、原生库及构建配置变更也会自动触发。
-运行成功后，在该次运行的 **Artifacts** 中下载 `fqapp-arm64-运行编号`；其中包含
-`app-release.apk`、SHA-256、签名与 16 KiB 对齐报告、源码版本和工具版本，产物保留 14 天。
+打开 [Actions → Android APK](https://github.com/linkuanb/huangfeng-xiaoshuo/actions/workflows/android-apk.yml)，
+点击 **Run workflow** 即可从源码构建。`main` 上的应用、原生库及构建配置变更也会自动触发。
+运行成功后，在该次运行的 **Artifacts** 中下载 `fqapp-arm64-<分支>-<提交>-<运行号>` 与
+`fqapp-armv7-<分支>-<提交>-<运行号>`；其中包含 split APK
+（`app-arm64-v8a-release.apk` / `app-armeabi-v7a-release.apk`）、SHA-256、签名与 16 KiB
+对齐报告、源码版本和工具版本，产物保留 14 天。
 
 [工作流](.github/workflows/android-apk.yml) 固定 Flutter `3.44.6`、Rust 工具链与
 flutter_rust_bridge `2.13.0`、JDK 17、NDK `28.2.13676358` 和 CMake `3.22.1`。
@@ -227,6 +229,29 @@ JVM 单测也不需要签名。可以保留，也可以删除。）
 
 ELF/ZIP 的 16 KiB 对齐检查通过后，仍需在对应 Android 设备上验证实际播放；
 开启 R8 后还必须额外确认 JNI 符号没被改名破坏（真机验收清单由维护者本地留档）。
+
+### 发布与自动更新
+
+`main` 上构建成功后还会跑 `publish` 作业，把两个 ABI 的 APK 发到两个位置：
+
+1. **滚动 Release**（tag 固定为 `latest`）——资源文件名固定，下载地址因此长期不变：
+
+   - `https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/huangfeng-arm64-v8a.apk`
+   - `https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/huangfeng-armeabi-v7a.apk`
+   - `https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/version.json`
+
+   `version.json` 给出 `version`、`versionCode`、`commit` 和两个 APK 的文件名，
+   客户端据此判断是否需要更新、该下哪个包。
+
+2. **版本存档 Release**（tag 为 `v<pubspec 版本>`）——每个版本留一份，可回退。
+
+两个 APK 都由同一把正式证书签发，所以新包能直接覆盖安装旧包，这是自动更新成立的前提。
+仓库的 Actions「Workflow permissions」必须设为 **Read and write**；否则 `publish` 会以
+`HTTP 403: Resource not accessible by integration` 失败，而且**重跑旧运行不会生效**
+（旧运行沿用创建时的权限快照），必须重新触发一次构建。
+
+上游 `ch6vip/fqapp` 有新提交时，`sync-upstream.yml` 每 6 小时把它合并进 `main`，
+合并成功后再派发一次出包，因此上面的下载地址会自动指向最新版本。
 
 ### 4. 安装运行
 
