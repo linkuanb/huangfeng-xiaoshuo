@@ -1,5 +1,5 @@
 name: fqapp
-description: "什锦铺 — 小说 / 短剧 / 漫剧 / 漫画 / 听书聚合客户端。"
+description: "黄蜂 — 小说 / 短剧 / 漫剧 / 漫画 / 听书聚合客户端。"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -104,7 +104,6 @@ flutter:
     - assets/filters/
     - assets/plugins/
     - assets/images/app_logo.webp
-    - assets/images/wechat_reward.png
     - assets/images/bubble/
     # 评论/回复正文的官方表情（`emoji_config.json` 的 53 个令牌），
     # 图片从 `ckao/fanqie-7.0.9.32/apktool/res/drawable-xxhdpi/` 原样抽出。

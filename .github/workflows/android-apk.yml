@@ -2,7 +2,10 @@ name: Android APK
 
 on:
   push:
-    branches: [master, listen-follow, listen-follow-ex]
+    # main 是 fork（linkuanb/huangfeng-xiaoshuo）的主线；master 等其余分支
+    # 只用于上游原样构建。自动同步工作流合并上游后会用 workflow_dispatch
+    # 触发本工作流（GITHUB_TOKEN 推送不会触发 push 事件）。
+    branches: [master, main, listen-follow, listen-follow-ex]
     # 打 tag 也出包：tag 推送不走 paths 过滤（native-crypto 在
     # v1.0.117 tag 推送时已跑过一次可作证），branches/tags 是 OR 关系，
     # 所以加 tags 后推 v* 就会触发一次完整构建，APK 在 Artifacts 里，
@@ -57,7 +60,13 @@ env:
   # this, so a package signed with the wrong key -- or not signed at all --
   # fails here instead of being published. The matching keystore is stored
   # as a repository secret.
-  RELEASE_SIGNER_SHA256: 'e8471cd8a935fd71fd8197355b5558d245449d5bc8294f60f88616f60451c550'
+  #
+  # This is the fork's own certificate (linkuanb/huangfeng-xiaoshuo), not the
+  # upstream one: the fork publishes its own rolling release, and every build
+  # must be signed by the SAME key or an update could never install over the
+  # previous one. Rotating the keystore means changing this constant in the
+  # same commit that replaces the four signing secrets.
+  RELEASE_SIGNER_SHA256: '40de42682b152c2a51f8bd46286acd101f8074253525df3cfab4cd2be83c0372'
   FQAPP_USE_MAVEN_MIRRORS: 'false'
   # workers.max / CMAKE_BUILD_PARALLEL_LEVEL stay at 2. Raising them to 4 was
   # measured and made things WORSE on the 4-vCPU / 16 GB runner: the release APK
@@ -88,6 +97,37 @@ jobs:
           path: app
           persist-credentials: false
 
+      # ubuntu-24.04 镜像预装了大量本作业用不到的 SDK/工具链，而这次构建要落地
+      # Rust 交叉编译产物（两个 ABI）、Gradle/R8 中间产物和三份缓存。不先腾地方，
+      # 构建后段会以 LLVM ERROR: IO failure on output stream: No space left on
+      # device 失败（首次在 :app:stripReleaseDebugSymbols 上炸掉）。这里只删除
+      # 本作业确定不用的目录，NDK/CMake 也只保留本作业钉住的那两个版本。
+      - name: Free disk space
+        run: |
+          set -euo pipefail
+          echo 'Disk before:'
+          df -h / | tail -1
+          sudo rm -rf \
+            /usr/share/dotnet \
+            /usr/local/share/boost \
+            /opt/ghc \
+            /usr/share/swift \
+            /opt/google/chrome \
+            /usr/local/share/powershell \
+            /opt/hostedtoolcache/CodeQL \
+            /opt/hostedtoolcache/Ruby \
+            "$ANDROID_HOME/system-images" \
+            "$ANDROID_HOME/emulator"
+          for dir in "$ANDROID_HOME/ndk"/* "$ANDROID_HOME/cmake"/*; do
+            [ -d "$dir" ] || continue
+            name="$(basename "$dir")"
+            if [ "$name" != "$NDK_VERSION" ] && [ "$name" != "$CMAKE_VERSION" ]; then
+              sudo rm -rf "$dir"
+            fi
+          done
+          echo 'Disk after:'
+          df -h / | tail -1
+
       # The version-monotonicity gate below reads `git tag --list 'v*'`. A
       # default checkout is `--depth=1 --no-tags`, so that list comes back
       # EMPTY and the gate silently passes on every branch and PR build. Worse,
@@ -99,9 +139,17 @@ jobs:
       # so fetching tags costs seconds.
       - name: Fetch version tags for the monotonicity gate
         working-directory: app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git fetch --tags --force origin '+refs/tags/v*:refs/tags/v*' \
-            || git fetch --tags --force origin
+          # 上面的 checkout 用 persist-credentials: false，.git 里没有凭据，而本
+          # 仓库是私有的：匿名 fetch 会以 "could not read Username for
+          # 'https://github.com'" 退出。这里只给这一次 fetch 显式带上 token
+          # （GITHUB_TOKEN 的值在日志里会被自动打码），不写进 .git/config。
+          tags_url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if ! git fetch --tags --force "$tags_url" '+refs/tags/v*:refs/tags/v*'; then
+            echo '::warning::取回 v* 标签失败；版本单调性检查将跳过。' >&2
+          fi
           count="$(git tag --list 'v*' | wc -l)"
           if [ "$count" -eq 0 ]; then
             # Not fatal: the gate downstream degrades to "no tag to compare
@@ -681,3 +729,103 @@ jobs:
       # the whole 4-vCPU machine, so 4 keeps every core busy.
       - name: Test
         run: flutter test --no-pub --concurrency=4 --reporter compact
+
+  # 只在 fork 主线（main）上发布，PR/其它分支的构建继续只留 Artifacts。
+  #
+  # 发布到两个位置：
+  #   1. 滚动 Release（tag 固定为 latest）——文件名固定，下载地址因此长期不变，
+  #      适合让客户端「检查更新」直接拉最新安装包：
+  #        https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/huangfeng-arm64-v8a.apk
+  #        https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/huangfeng-armeabi-v7a.apk
+  #        https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/version.json
+  #   2. 版本存档 Release（tag 为 v<pubspec 版本>）—— 保留「不同版本」，可回退。
+  #
+  # 两个 APK 都是 release 签名（与 RELEASE_SIGNER_SHA256 同一把证书），所以新包
+  # 能直接覆盖安装旧包，这是「自动更新」成立的前提。
+  publish:
+    if: github.ref_type == 'branch' && github.ref == 'refs/heads/main'
+    needs: apk
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Check out the version source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          path: app
+          persist-credentials: false
+
+      - name: Download the two split APKs from this run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY"
+          -p 'fqapp-arm*' -D artifacts
+
+      - name: Assemble the release assets
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          arm64="$(find artifacts -name 'app-arm64-v8a-release.apk' | head -1)"
+          armv7="$(find artifacts -name 'app-armeabi-v7a-release.apk' | head -1)"
+          if [ -z "$arm64" ] || [ -z "$armv7" ]; then
+            echo '::error::The arm64-v8a / armeabi-v7a APKs are missing from this run'"'"'s artifacts.' >&2
+            exit 1
+          fi
+          cp "$arm64" dist/huangfeng-arm64-v8a.apk
+          cp "$armv7" dist/huangfeng-armeabi-v7a.apk
+          version_label="$(grep -m1 '^version:' app/pubspec.yaml)"
+          version="$(printf '%s\n' "$version_label" | sed -E 's/^version:[[:space:]]*([^+]+)(\+.*)?$/\1/' | tr -d '[:space:]')"
+          # 没有 +build 后缀时保持为空，下面用 ${build_number:-0} 兜底。
+          build_number="$(printf '%s\n' "$version_label" | sed -nE 's/.*\+([0-9]+).*/\1/p')"
+          printf '{\n  "version": "%s",\n  "versionCode": %s,\n  "commit": "%s",\n  "assets": {\n    "arm64-v8a": "huangfeng-arm64-v8a.apk",\n    "armeabi-v7a": "huangfeng-armeabi-v7a.apk"\n  }\n}\n' \
+            "$version" "${build_number:-0}" "$GITHUB_SHA" > dist/version.json
+          {
+            printf '版本：%s（versionCode %s）\n\n' "$version" "${build_number:-0}"
+            printf 'App commit：`%s`\n\n' "$GITHUB_SHA"
+            printf '| 文件 | 大小 | 适用设备 |\n| --- | --- | --- |\n'
+            printf '| `huangfeng-arm64-v8a.apk` | %s | 64 位 ARM（绝大多数手机） |\n' \
+              "$(du -h dist/huangfeng-arm64-v8a.apk | cut -f1)"
+            printf '| `huangfeng-armeabi-v7a.apk` | %s | 32 位 ARM（老设备/墨水屏） |\n' \
+              "$(du -h dist/huangfeng-armeabi-v7a.apk | cut -f1)"
+            printf '\n两个包都由仓库内的固定签名证书签发，可直接覆盖安装上一版。\n'
+            printf '\n`version.json` 提供版本号与文件名，供客户端检查更新使用。\n'
+          } > notes.md
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+        id: assemble
+
+      - name: Publish the rolling latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view latest --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release edit latest --repo "$GITHUB_REPOSITORY" \
+              --title "黄蜂 ${{ steps.assemble.outputs.version }} · 最新构建" \
+              --notes-file notes.md
+          else
+            gh release create latest --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "黄蜂 ${{ steps.assemble.outputs.version }} · 最新构建" \
+              --notes-file notes.md
+          fi
+          gh release upload latest --repo "$GITHUB_REPOSITORY" dist/* --clobber
+
+      - name: Archive this version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.assemble.outputs.version }}
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$tag" --repo "$GITHUB_REPOSITORY" dist/* --clobber
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "黄蜂 $VERSION" \
+              --notes-file notes.md \
+              dist/*
+          fi

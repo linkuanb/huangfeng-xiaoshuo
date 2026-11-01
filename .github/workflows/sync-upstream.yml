@@ -1,0 +1,112 @@
+name: Sync upstream
+
+# 把上游 ch6vip/fqapp 的 master 合并进本仓库（fork）的 main，再触发一次出包。
+#
+# 为什么不是「直接 fork 关系 + 网页 Sync fork」：这个仓库不是 GitHub 意义上的
+# fork（没有 parent），只能靠工作流定时拉取。
+#
+# 冲突策略：不自动猜。上游改到本仓库的品牌化文件（about_page.dart、pubspec.yaml、
+# README 等）时合并会冲突，此时中止合并、保留本地状态并让作业失败，由仓库所有者
+# 在本地解决（失败通知就是提醒）。
+#
+# 用 GITHUB_TOKEN 推送不会触发 android-apk.yml 的 push 事件，所以合并成功后显式
+# workflow_dispatch 一次；没有新提交时什么都不做，不会白跑一次完整构建。
+on:
+  schedule:
+    # 每 6 小时检查一次上游；分钟数错开整点，避免和整点高峰挤在一起。
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      regraft:
+        description: '把 main 的历史重新挂到上游 master（只在与上游没有共同祖先时需要，执行一次即可）'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  # 合并后用 gh workflow run 触发出包，需要 actions: write。
+  actions: write
+
+# 同一时间只允许一个同步作业；不取消进行中的那次，否则可能停在合并到一半的
+# 工作区里（即使失败也会回滚，但串行更简单）。
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          # 合并需要完整历史与共享基点，浅克隆会让 merge-base 失效。
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote add upstream https://github.com/ch6vip/fqapp.git
+          git fetch --no-tags upstream master
+
+      # 一次性操作：main 是用空仓库初始化出来的，与上游没有任何共同祖先，
+      # 普通 merge 会被 git 拒绝（refusing to merge unrelated histories）。
+      # 这里把 main 的现有内容原样提交（tree 完全不变），只把父提交换成
+      # upstream/master，等于给本地历史接上上游基线；之后的每次同步就都是
+      # 普通 merge。内容不变，所以不需要重新出包。
+      #
+      # 只在手动派发并勾选 regraft 时执行；定时任务永远不会强推。
+      # 已有共同祖先时直接跳过，重复派发也是安全的。
+      - name: Regraft main onto upstream history
+        id: regraft
+        if: github.event_name == 'workflow_dispatch' && inputs.regraft
+        run: |
+          set -euo pipefail
+          if git merge-base upstream/master HEAD > /dev/null 2>&1; then
+            echo 'main 已经与上游有共同祖先，无需重挂。'
+            echo 'regrafted=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          tree="$(git rev-parse 'HEAD^{tree}')"
+          grafted="$(git commit-tree "$tree" -p upstream/master \
+            -m 'chore: 以上游 master 为基线重新挂接 main 的历史（内容不变）')"
+          git push --force origin "$grafted:main"
+          echo "regrafted=true" >> "$GITHUB_OUTPUT"
+          echo "main 已重挂到 $grafted（内容与之前完全一致）。"
+
+      - name: Merge upstream master into main
+        id: merge
+        if: steps.regraft.outputs.regrafted != 'true'
+        run: |
+          set -euo pipefail
+          if git merge-base --is-ancestor upstream/master HEAD; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            echo '上游没有新提交，main 已是最新。'
+            exit 0
+          fi
+          if ! git merge --no-edit upstream/master; then
+            git merge --abort
+            echo '::error::与上游合并冲突，自动同步已中止，main 保持原状。请本地执行 git fetch upstream && git merge upstream/master 解决冲突后再推送。' >&2
+            exit 1
+          fi
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+          git --no-pager log --oneline -3
+
+      - name: Push the merged main
+        if: steps.merge.outputs.changed == 'true'
+        run: git push origin HEAD:main
+
+      - name: Dispatch the APK build
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # 推送用的是 GITHUB_TOKEN，按 GitHub 的规则不会触发 push 事件，
+          # 所以这里显式派发；android-apk.yml 的 publish 作业只认 main，
+          # 因此这次出包会顺带刷新 Releases 里的最新安装包。
+          gh workflow run android-apk.yml --ref main

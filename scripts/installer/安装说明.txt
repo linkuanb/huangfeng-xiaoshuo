@@ -1,4 +1,4 @@
-番茄小铺 · Windows 电脑版（社区移植版）
+黄蜂 · Windows 电脑版（社区移植版）
 
 原项目：https://github.com/ch6vip/fqapp
 本版本沿用原项目 GPL-3.0 许可证和作者署名。

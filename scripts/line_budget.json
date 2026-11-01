@@ -96,13 +96,8 @@
       "symbol": "Widget build(BuildContext context) {"
     },
     "lib/pages/about_page.dart::AboutPage.build": {
-      "line": 25,
-      "lines": 111,
-      "symbol": "Widget build(BuildContext context) {"
-    },
-    "lib/pages/about_page.dart::_SupportCard.build": {
-      "line": 239,
-      "lines": 83,
+      "line": 31,
+      "lines": 36,
       "symbol": "Widget build(BuildContext context) {"
     },
     "lib/pages/api_service_page.dart::_ApiServicePageState.build": {

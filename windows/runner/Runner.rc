@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.fqapp" "\0"
-            VALUE "FileDescription", "fqapp Desktop" "\0"
+            VALUE "FileDescription", "黄蜂" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "fqapp" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 ch6vip and fqapp desktop contributors. GPL-3.0." "\0"
             VALUE "OriginalFilename", "fqapp.exe" "\0"
-            VALUE "ProductName", "fqapp Desktop" "\0"
+            VALUE "ProductName", "黄蜂" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

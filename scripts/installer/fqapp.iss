@@ -14,15 +14,15 @@
 
 [Setup]
 AppId={{3BE7E59C-6708-48D1-A16A-6AB902242439}
-AppName=番茄小铺 · 电脑版
+AppName=黄蜂 · 电脑版
 AppVersion={#AppVersion}
-AppVerName=番茄小铺 · 电脑版 {#AppVersion}
+AppVerName=黄蜂 · 电脑版 {#AppVersion}
 AppPublisher=ch6vip / fqapp desktop contributors
 AppPublisherURL=https://github.com/ch6vip/fqapp
 AppSupportURL=https://github.com/ch6vip/fqapp
 AppCopyright=Copyright (C) 2026 ch6vip and fqapp desktop contributors. GPL-3.0.
 DefaultDirName={localappdata}\Programs\fqapp Desktop
-DefaultGroupName=番茄小铺电脑版
+DefaultGroupName=黄蜂电脑版
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
@@ -31,7 +31,7 @@ MinVersion=10.0.17763
 WizardStyle=modern
 SetupIconFile={#RepoRoot}\windows\runner\resources\app_icon.ico
 UninstallDisplayIcon={app}\fqapp.exe
-UninstallDisplayName=番茄小铺 · 电脑版
+UninstallDisplayName=黄蜂 · 电脑版
 LicenseFile={#RepoRoot}\LICENSE
 InfoAfterFile={#RepoRoot}\scripts\installer\安装说明.txt
 OutputDir={#OutputDir}
@@ -52,8 +52,8 @@ Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: 
 Source: "{#BundleDir}\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\番茄小铺电脑版"; Filename: "{app}\fqapp.exe"; WorkingDir: "{app}"
-Name: "{autodesktop}\番茄小铺电脑版"; Filename: "{app}\fqapp.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{group}\黄蜂电脑版"; Filename: "{app}\fqapp.exe"; WorkingDir: "{app}"
+Name: "{autodesktop}\黄蜂电脑版"; Filename: "{app}\fqapp.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\fqapp.exe"; Description: "运行番茄小铺电脑版"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\fqapp.exe"; Description: "运行黄蜂电脑版"; Flags: nowait postinstall skipifsilent

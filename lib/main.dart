@@ -277,7 +277,7 @@ class _FqAppState extends State<FqApp> {
                           : playback,
                     );
                   },
-                  title: '什锦铺',
+                  title: '黄蜂',
                   debugShowCheckedModeBanner: false,
                   // OLED 纯黑只在深色下生效（浅色时 createTheme 直接忽略）。
                   theme: _theme(Brightness.light, eink: eink, oled: oled),
