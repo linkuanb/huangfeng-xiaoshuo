@@ -1,0 +1,31 @@
+name: Release probe
+
+# 临时探测：确认本仓库的 GITHUB_TOKEN 在拥有 contents: write 时能否创建 Release。
+# 验证完即删除，不属于正式流程。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Show the token permissions the job actually received
+        run: |
+          set -euo pipefail
+          gh --version
+          gh api "repos/$GITHUB_REPOSITORY" --jq '{private, archived, disabled}' || true
+      - name: Try to create a draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo '--- POST /releases ---'
+          gh api -X POST "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="probe-$GITHUB_RUN_ID" \
+            -f name="probe-$GITHUB_RUN_ID" \
+            -f body='temporary probe' \
+            -F draft=true --jq '{id, tag_name}' || echo "POST /releases failed with exit $?"
