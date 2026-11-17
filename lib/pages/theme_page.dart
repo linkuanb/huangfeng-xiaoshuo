@@ -441,7 +441,7 @@ class _ArchiveMini extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'SHIJINPU',
+                  'HUANGFENG',
                   style: TextStyle(
                     fontSize: 8,
                     fontWeight: FontWeight.w700,

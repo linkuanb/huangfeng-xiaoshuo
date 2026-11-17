@@ -32,6 +32,7 @@ import 'services/app_theme_style.dart';
 import 'services/api_client.dart';
 import 'services/ai_reading/ai_controller.dart';
 import 'services/webdav_sync_service.dart';
+import 'services/app_update_service.dart';
 import 'services/audio_download_store.dart';
 import 'services/audio_floating_routes.dart';
 import 'services/drama_cache_preferences.dart';
@@ -65,6 +66,7 @@ import 'widgets/app_ui/app_ui_scope.dart';
 import 'widgets/dock_auto_hide.dart';
 import 'widgets/shell_dock.dart';
 import 'widgets/unsupported_feature_page.dart';
+import 'widgets/app_update_dialog.dart';
 import 'widgets/home/home_design.dart';
 
 Future<void> main() async {
@@ -383,7 +385,7 @@ class _FqAppState extends State<FqApp> {
                         ),
                       );
                     },
-                    title: '什锦铺',
+                    title: '黄蜂',
                     debugShowCheckedModeBanner: false,
                     // OLED 纯黑只在深色下生效（浅色时 createTheme 直接忽略）。
                     theme: _theme(
@@ -746,6 +748,27 @@ class _RootShellState extends State<RootShell> with TickerProviderStateMixin {
     shellVisibleTab.value = _index;
     _pageMotion.addStatusListener(_onPageMotionStatus);
     _startBackend();
+    _scheduleAppUpdateCheck();
+  }
+
+  /// 启动后静默检查一次新版本：有新版弹更新对话框，失败（断网、已最新、
+  /// 非 Android）不打扰用户。延迟几秒等首帧稳定、避免和后端启动抢网络。
+  ///
+  /// 用可取消的 Timer 而不是 `Future.delayed`：页面销毁后若还挂着等待中的
+  /// 定时器，widget 测试会以「Timer is still pending」失败，真机上是白留一个
+  /// 3 秒后的空转回调。
+  Timer? _updateCheckTimer;
+
+  void _scheduleAppUpdateCheck() {
+    _updateCheckTimer?.cancel();
+    _updateCheckTimer = Timer(const Duration(seconds: 3), () {
+      unawaited(() async {
+        if (!mounted) return;
+        final info = await AppUpdateService().check();
+        if (!mounted || info == null) return;
+        await showAppUpdateDialog(context, info);
+      }());
+    });
   }
 
   void _onDramaChromeChanged() {
@@ -849,6 +872,7 @@ class _RootShellState extends State<RootShell> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _updateCheckTimer?.cancel();
     dramaLightPageNotifier.removeListener(_onDramaChromeChanged);
     einkModeNotifier.removeListener(_onEinkModeChanged);
     _dockReveal.detach();

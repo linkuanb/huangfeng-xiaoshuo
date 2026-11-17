@@ -256,7 +256,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('classic about keeps SettingsRows, the licence route and 赞赏', (
+  testWidgets('classic about keeps SettingsRows and the licence route', (
     tester,
   ) async {
     final store = await pumpStyled(
@@ -273,23 +273,16 @@ void main() {
       expect(find.text(title), findsOneWidget);
     }
     expect(find.text(AboutPage.versionText), findsOneWidget);
-    // The fqapp-only sponsor card and 赞赏 stay on the classic page.
-    expect(find.text('支持作者'), findsOneWidget);
-    expect(find.text('前往爱发电'), findsOneWidget);
-    expect(find.text('微信赞赏'), findsOneWidget);
+    // 黄蜂版去掉了上游的赞助卡（爱发电 / 微信赞赏），两种板式都不再出现。
+    expect(find.text('支持作者'), findsNothing);
+    expect(find.text('前往爱发电'), findsNothing);
+    expect(find.text('微信赞赏'), findsNothing);
 
     await tester.tap(find.text('开源许可'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(LicensePage), findsOneWidget);
     await tester.pageBack();
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('微信赞赏'));
-    await tester.pumpAndSettle();
-    expect(find.byType(Dialog), findsOneWidget);
-    expect(find.text('微信扫一扫，赞赏作者'), findsOneWidget);
-    await tester.tap(find.text('关闭'));
     await tester.pumpAndSettle();
 
     store.value = AppThemeStyle.archive;
@@ -441,7 +434,7 @@ void main() {
 
       await tester.tap(find.widgetWithText(SettingsRow, '关于'));
       await tester.pumpAndSettle();
-      expect(find.text('什锦铺'), findsOneWidget);
+      expect(find.text('黄蜂'), findsOneWidget);
       expect(find.byType(SettingsScaffold), findsOneWidget);
       expect(find.byTooltip('返回'), findsNothing);
 

@@ -607,7 +607,7 @@ void main() {
     expect(find.textContaining('书架分组'), findsOneWidget);
   });
 
-  testWidgets('经典关于页在窄屏大字号下不溢出且许可/赞赏可达', (tester) async {
+  testWidgets('经典关于页在窄屏大字号下不溢出且许可可达', (tester) async {
     for (final width in [320.0, 360.0]) {
       for (final scale in [1.0, 1.5, 2.0]) {
         final store = AppThemeStyleStore()..value = AppThemeStyle.classic;
@@ -630,12 +630,12 @@ void main() {
         );
         expect(find.text(AboutPage.versionText), findsOneWidget);
         await tester.scrollUntilVisible(
-          find.text('微信赞赏'),
+          find.text('开源许可'),
           200,
           scrollable: find.byType(Scrollable).first,
         );
         expect(find.text('开源许可'), findsOneWidget);
-        expect(find.text('微信赞赏'), findsOneWidget);
+        expect(find.text('问题反馈'), findsOneWidget);
         store.dispose();
         await tester.pumpWidget(const SizedBox.shrink());
       }
@@ -651,10 +651,10 @@ void main() {
     );
     expect(find.byType(SettingsGroupCard), findsOneWidget);
     expect(find.text(AboutPage.versionText), findsOneWidget);
-    expect(find.text('支持作者'), findsOneWidget);
+    expect(find.text('支持作者'), findsNothing);
     store.value = AppThemeStyle.archive;
     await tester.pumpAndSettle();
-    expect(find.text('支持作者'), findsOneWidget);
+    expect(find.text('支持作者'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

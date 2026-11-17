@@ -48,6 +48,8 @@ class MainActivity : FlutterActivity() {
         // 小米澎湃 OS 公平运行内存：收 TRIM/KILL 广播，转发 Dart 处理后回系统。
         flutterEngine.plugins.add(FairMemoryPlugin())
         flutterEngine.plugins.add(AiRequestPlugin())
+        // App 内自动更新：下载好的 APK 经 FileProvider 交给系统安装器。
+        flutterEngine.plugins.add(AppUpdatePlugin())
 
         hapticsChannel =
             MethodChannel(
@@ -67,7 +69,6 @@ class MainActivity : FlutterActivity() {
                     }
                 }
             }
-
         // 音量键翻页通道：Dart -> 原生 setEnabled 控制是否拦截；原生 -> Dart
         // volumeKey 回调翻页方向（+1 下一页 / -1 上一页）。
         volumeChannel =

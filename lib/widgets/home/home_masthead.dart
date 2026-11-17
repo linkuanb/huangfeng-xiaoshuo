@@ -12,10 +12,10 @@ import 'home_design.dart';
 /// 热搜词仍在搜索页里。高度固定，不随内容滚动。
 class HomeMasthead extends StatelessWidget {
   /// 应用名（`android:label` 同值）。
-  static const String brand = '什锦铺';
+  static const String brand = '黄蜂';
 
   /// 店名下面的档案编号，纯装饰性的识别行。
-  static const String brandCode = 'SHIJINPU / STORY ARCHIVE';
+  static const String brandCode = 'HUANGFENG / STORY ARCHIVE';
 
   static const double actionSize = 36;
 

@@ -70,7 +70,7 @@ class LinuxLibsecretKeyStore implements SecureKeyStorage {
   static const _schemaName = 'com.fqapp.fqapp.secure_keys';
   static const _attributeName = 'account';
   static const _attributeValue = 'fqapp_secure_keys_v1';
-  static const _label = '什锦铺本机密钥';
+  static const _label = '黄蜂本机密钥';
 
   /// C 结构体自检：libsecret `SecretSchema` 在 64 位 ABI 下为 592 字节
   /// （name 8 + flags 4 + 32×16 attributes + reserved 4 + 7×8 保留指针 + 对齐）。

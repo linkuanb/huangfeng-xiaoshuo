@@ -259,10 +259,12 @@ Rust 核心按 `arm64-v8a` 与 `armeabi-v7a` 两个 ABI 产出（`scripts/build_
 
 ### GitHub Actions 云端编译
 
-打开 [Actions → Android APK](https://github.com/ch6vip/novel-sound/actions/workflows/android-apk.yml)，
-点击 **Run workflow** 即可从源码构建。`master` 上的应用、原生库及构建配置变更也会自动触发。
-运行成功后，在该次运行的 **Artifacts** 中下载 `fqapp-arm64-运行编号`；其中包含
-`app-release.apk`、SHA-256、签名与 16 KiB 对齐报告、源码版本和工具版本，产物保留 14 天。
+打开 [Actions → Android APK](https://github.com/linkuanb/huangfeng-xiaoshuo/actions/workflows/android-apk.yml)，
+点击 **Run workflow** 即可从源码构建。`main` 上的应用、原生库及构建配置变更也会自动触发。
+运行成功后，在该次运行的 **Artifacts** 中下载 `fqapp-arm64-<分支>-<提交>-<运行号>` 与
+`fqapp-armv7-<分支>-<提交>-<运行号>`；其中包含 split APK
+（`app-arm64-v8a-release.apk` / `app-armeabi-v7a-release.apk`）、SHA-256、签名与 16 KiB
+对齐报告、源码版本和工具版本，产物保留 14 天。
 
 [工作流](.github/workflows/android-apk.yml) 固定 Flutter `3.50.0`、Rust 工具链与
 flutter_rust_bridge `2.13.0`、JDK 17、NDK `28.2.13676358` 和 CMake `3.22.1`。
@@ -297,6 +299,34 @@ JVM 单测也不需要签名。可以保留，也可以删除。）
 
 ELF/ZIP 的 16 KiB 对齐检查通过后，仍需在对应 Android 设备上验证实际播放；
 开启 R8 后还必须额外确认 JNI 符号没被改名破坏（真机验收清单由维护者本地留档）。
+
+### 发布与自动更新
+
+`main` 上构建成功后还会跑 `publish` 作业，把两个 ABI 的 APK 发到两个位置：
+
+1. **滚动 Release**（tag 固定为 `latest`）——资源文件名固定，下载地址因此长期不变：
+
+   - `https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/huangfeng-arm64-v8a.apk`
+   - `https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/huangfeng-armeabi-v7a.apk`
+   - `https://github.com/linkuanb/huangfeng-xiaoshuo/releases/latest/download/version.json`
+
+   `version.json` 给出 `version`、`versionCode`、`commit` 和两个 APK 的文件名，
+   客户端据此判断是否需要更新、该下哪个包。
+
+2. **版本存档 Release**（tag 为 `v<pubspec 版本>`）——每个版本留一份，可回退。
+
+两个 APK 都由同一把正式证书签发，所以新包能直接覆盖安装旧包，这是自动更新成立的前提。
+仓库的 Actions「Workflow permissions」必须设为 **Read and write**；否则 `publish` 会以
+`HTTP 403: Resource not accessible by integration` 失败，而且**重跑旧运行不会生效**
+（旧运行沿用创建时的权限快照），必须重新触发一次构建。
+
+客户端启动 3 秒后会静默拉一次 `version.json`，版本号比本地 `pubspec.yaml` 的 `+build`
+大才弹更新对话框（下载 → 交给系统安装器覆盖安装）。`lib/services/app_update_service.dart`
+里的 `currentVersionCode` 必须与 `pubspec.yaml` 的 `+build` 保持一致，
+`test/app_update_service_test.dart` 会在两者漂移时失败。
+
+上游 `ch6vip/novel-sound` 有新提交时，`sync-upstream.yml` 每 6 小时把它合并进 `main`，
+合并成功后再派发一次出包，因此上面的下载地址会自动指向最新版本。
 
 ### 4. 安装运行
 
@@ -484,7 +514,7 @@ bash scripts/test_quick.sh home
 | 路径 | 实际结果 | 限制 |
 |---|---|---|
 | 冷启动 | `am start -W` TotalTime 约 9.0s，`fqapi_core: core init: port=18921`；启动后约 20s 内显示「正在启动本地服务…」，随后进入完整首页 | 后端服务就绪前的加载态属正常初始化 |
-| 首页档案化 | 什锦铺 / SHIJINPU STORY ARCHIVE、01 / RANKING、排行榜、榜单胶囊、书脊阵列、信息行、翻页器、悬浮 dock 全部呈现，与旧包基线一致 | 仅在本实例分辨率与字体下观察 |
+| 首页档案化 | 黄蜂 / HUANGFENG STORY ARCHIVE、01 / RANKING、排行榜、榜单胶囊、书脊阵列、信息行、翻页器、悬浮 dock 全部呈现，与旧包基线一致 | 仅在本实例分辨率与字体下观察 |
 | 翻页器 | NO.001 → NO.002，第 2 本 / 共 16 本，书名、作者、在读人数与书脊焦点同步 | 未验证点击书脊画布的命中换算 |
 | 切换榜单 | 「完本榜」选中并刷新为 30 本 / NO.001 / 19.2 万人在读 | 上游数据，不作内容正确性断言 |
 | 切换顶部 tab | 「小说」下划线正确移动，内容区仍显示同一排行榜区块；切回「推荐」正常 | 各 tab 内容差异未验证 |

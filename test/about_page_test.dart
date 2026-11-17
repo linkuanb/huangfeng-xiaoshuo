@@ -7,7 +7,7 @@ import 'package:fqapp/widgets/settings/settings_widgets.dart';
 import 'package:fqapp/widgets/wenku/wenku_ui.dart';
 
 /// 关于页改版后的结构与交互：全部信息行齐备、版本行点按复制、开源许可
-/// 打开框架许可页、微信赞赏打开赞赏码弹窗。
+/// 打开框架许可页。
 void main() {
   Future<void> pumpAbout(WidgetTester tester) async {
     // 页面内容高于默认 800x600 视口，ListView 外的行不会被构建；
@@ -27,7 +27,7 @@ void main() {
   testWidgets('关于页渲染出介绍与全部信息行', (tester) async {
     await pumpAbout(tester);
 
-    expect(find.text('什锦铺'), findsOneWidget);
+    expect(find.text('黄蜂'), findsOneWidget);
     expect(find.text('小说 / 短剧 / 漫剧 / 漫画 / 听书聚合客户端'), findsOneWidget);
     // 介绍是一段正文，不再是「项目介绍」标题行。
     expect(find.textContaining('所有签名与解密都在你的手机本地完成'), findsOneWidget);
@@ -36,7 +36,7 @@ void main() {
     expect(find.text('当前版本'), findsOneWidget);
     expect(find.text(AboutPage.versionText), findsOneWidget);
     expect(find.text('检查更新'), findsOneWidget);
-    expect(find.text('前往 GitHub 发布页查看新版本'), findsOneWidget);
+    expect(find.text('在线检查并安装新版本'), findsOneWidget);
     expect(find.text('开源许可'), findsOneWidget);
     expect(find.text('GPL-3.0 与第三方组件许可'), findsOneWidget);
     expect(find.text('Source Code'), findsNothing);
@@ -63,9 +63,9 @@ void main() {
       previousTop = top;
     }
 
-    expect(find.text('支持作者'), findsOneWidget);
-    expect(find.text('前往爱发电'), findsOneWidget);
-    expect(find.text('微信赞赏'), findsOneWidget);
+    expect(find.text('支持作者'), findsNothing);
+    expect(find.text('前往爱发电'), findsNothing);
+    expect(find.text('微信赞赏'), findsNothing);
     expect(find.textContaining('仅限个人学习研究使用'), findsOneWidget);
   });
 
@@ -108,21 +108,7 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 600)),
     );
     await tester.pump();
-    expect(find.text('什锦铺'), findsWidgets);
-  });
-
-  testWidgets('点微信赞赏打开赞赏码弹窗', (tester) async {
-    await pumpAbout(tester);
-    await tester.tap(find.text('微信赞赏'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(Dialog), findsOneWidget);
-    expect(find.text('微信扫一扫，赞赏作者'), findsOneWidget);
-    final image = tester.widget<Image>(find.byType(Image).last);
-    expect(
-      (image.image as AssetImage).assetName,
-      'assets/images/wechat_reward.png',
-    );
+    expect(find.text('黄蜂'), findsWidgets);
   });
 
   testWidgets('墨水屏下 logo 不投彩色阴影，浅色仍保留', (tester) async {
